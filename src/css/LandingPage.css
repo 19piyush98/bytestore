@@ -1,0 +1,71 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.main h1 {
+    display: inline-block;
+    font-size: 4rem;
+    font-weight: bold;
+    color: #c8e0ef; /* Dark gray for a premium look */
+    letter-spacing: 0.07em;
+    color: transparent; /* Makes the text color transparent to show gradient */
+    background: linear-gradient(to right, #eef0f1, #dff4f1, #e7e3e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+#b {
+    color: #c8e0ef; /* Dark gray for a premium look */
+    font-family: 'Poppins', sans-serif; /* A clean, modern font */
+    font-size: 4rem; /* Large size for emphasis */
+    font-weight: 700; /* Bold text */
+    text-transform: uppercase; /* All caps for a strong look */
+    letter-spacing: 3px; /* Increased letter spacing for impact */
+    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
+    -webkit-background-clip: text; /* Apply gradient to text */
+    color: transparent; /* Makes the text color transparent to show gradient */
+  }
+  
+  #b-continue {
+    color: #c8e0ef; /* Dark gray for a premium look */
+    font-size: 2.5rem;
+    font-weight: normal;
+    -webkit-background-clip: text; /* Apply gradient to text */
+  }
+  
+  #store {
+    color: #c8e0ef; /* Dark gray for a premium look */
+    font-size: 2rem;
+    font-weight: bold;
+    -webkit-background-clip: text; /* Apply gradient to text */
+  }
+  
+
+
+html, body {
+    height: 100%;
+    color: #c8e0ef;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.main {
+    background-image: url('../assets/background-image.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh; /* Force exact full height */
+    width: 100%;
+}
+
+.navbar {
+  margin-top: 7%;
+}
+
+.delete-button:hover {
+  color: red;
+}
