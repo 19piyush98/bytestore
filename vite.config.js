@@ -10,5 +10,6 @@ export default defineConfig({
   theme: {
     extend: {},
   },
+  base: "/bytestore/",
   plugins: [react(), tailwindcss()],
 })
