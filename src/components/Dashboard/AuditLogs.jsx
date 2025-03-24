@@ -54,7 +54,7 @@ const AuditLogs = () => {
 
         const data = await response.json();
         const isSuccess = data.success;
-        setLoading(false)
+        setLoading(false);
         if (isSuccess) {
           setLogs(
             data?.logs.sort((a, b) => a.timestamp - b.timestamp).reverse()
@@ -91,11 +91,7 @@ const AuditLogs = () => {
     }
   };
 
-  return loading ? (
-    <div style={{ textAlign: "center", marginTop: "20vh" }}>
-      <LoadingOutlined style={{ fontSize: 48 }} spin />
-    </div>
-  ) : (
+  return (
     <>
       <Input
         onChange={handleSearch}
@@ -112,30 +108,32 @@ const AuditLogs = () => {
           flexDirection: "column",
         }}
       >
-        <InfiniteScroll
-          dataLength={filteredLogs.length}
-          hasMore={false}
-          loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
-          endMessage={<Divider plain>It is all, nothing more 🤐</Divider>}
-          scrollableTarget="scrollableDiv"
-        >
-          <List
-            dataSource={filteredLogs}
-            renderItem={(log, idx) => (
-              <List.Item key={idx}>
-                <List.Item.Meta
-                  avatar={
-                    <Avatar size="large">
-                      <AuditOutlined />
-                    </Avatar>
-                  }
-                  title={log.logMessage}
-                />
-                <div>{getReadableDate(log.timestamp)}</div>
-              </List.Item>
-            )}
-          />
-        </InfiniteScroll>
+        <Skeleton loading={loading} active>
+          <InfiniteScroll
+            dataLength={filteredLogs.length}
+            hasMore={false}
+            loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
+            endMessage={<Divider plain>It is all, nothing more 🤐</Divider>}
+            scrollableTarget="scrollableDiv"
+          >
+            <List
+              dataSource={filteredLogs}
+              renderItem={(log, idx) => (
+                <List.Item key={idx}>
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar size="large">
+                        <AuditOutlined />
+                      </Avatar>
+                    }
+                    title={log.logMessage}
+                  />
+                  <div>{getReadableDate(log.timestamp)}</div>
+                </List.Item>
+              )}
+            />
+          </InfiniteScroll>
+        </Skeleton>
       </div>
     </>
   );

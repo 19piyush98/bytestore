@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Form, Row, Col, Input, Button, Checkbox } from "antd";
 
 const AuthPage = (props) => {
-  const [isSignUp, setIsSignUp] = useState(true); // Toggle between sign-up and sign-in
+  const [isSignUp, setIsSignUp] = useState(true);
   const [signUpFormData, setSignUpFormData] = useState({
     user_name: "",
     org_name: "",
@@ -21,23 +21,19 @@ const AuthPage = (props) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [checkLogin, setCheckLogin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (checkLogin) {
-      setInterval(() => {
-        const expiration = localStorage.getItem("expirationEpoch");
-        const currentEpoch = Date.now();
-        if (expiration <= currentEpoch) {
-          navigate("/", {
-            state: {},
-            replace: true,
-          });
+    const expiration = localStorage.getItem("expirationEpoch");
+    if (expiration) {
+      const checkExpiration = setInterval(() => {
+        if (Date.now() >= expiration) {
+          navigate("/", { state: {}, replace: true });
         }
       }, 10000);
+      return () => clearInterval(checkExpiration);
     }
-  }, [checkLogin]);
+  }, []);
 
   const handleSignUpInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -55,11 +51,14 @@ const AuthPage = (props) => {
   };
 
   const convertSignUpData = (formData) => {
-    const convertedData = {
+    if (formData.password !== formData.confirm_password) {
+      throw new Error("Passwords do not match!");
+    }
+    return {
       userDetails: {
         userInfo: {
-          preferredLanguage: "English", // Make dynamic if needed
-          joinedDate: Date.now(), // Make dynamic if needed
+          preferredLanguage: "English",
+          joinedDate: Date.now(),
           loyaltyPoints: parseFloat(formData.loyalty_points) || 0,
         },
         userName: formData.user_name || "",
@@ -71,19 +70,12 @@ const AuthPage = (props) => {
       email: formData.email || "",
       password: formData.password || "",
     };
-
-    if (formData.password !== formData.confirm_password) {
-      throw new Error("Passwords do not match!"); // Throw an error
-    }
-    return convertedData;
   };
 
   const handleSignUpSubmit = async () => {
     setError("");
-
     try {
-      const apiData = convertSignUpData(signUpFormData); // No need to check for null anymore
-
+      const apiData = convertSignUpData(signUpFormData);
       const response = await fetch(
         "https://bytestore-backend-production.up.railway.app/byteStore/users/signUp",
         {
@@ -92,39 +84,28 @@ const AuthPage = (props) => {
           body: JSON.stringify(apiData),
         }
       );
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Signup failed");
       }
-
       const data = await response.json();
-      const isSuccess = data.success;
-      if (isSuccess) {
-        localStorage.setItem("orgTokenId", data.orgTokenId);
-
-        navigate("/dashboard", {
-          // Redirection ALWAYS happens on successful signup
-          state: {
-            userId: data.userId,
-            sessionToken: data.sessionToken,
-            orgTokenId: data.orgTokenId,
-          },
-        });
-      } else {
-        setError(data.message);
-      }
+      localStorage.setItem("orgTokenId", data.orgTokenId);
+      navigate("/dashboard", {
+        state: {
+          userId: data.userId,
+          sessionToken: data.sessionToken,
+          orgTokenId: data.orgTokenId,
+        },
+      });
     } catch (err) {
-      console.error("Signup error:", err);
-      setError(err.message); // This will now catch both network errors and password mismatch errors
+      setError(err.message);
     }
   };
 
   const handleSignInSubmit = async () => {
     setError("");
-
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const response = await fetch(
         "https://bytestore-backend-production.up.railway.app/byteStore/users/signIn",
         {
@@ -133,36 +114,24 @@ const AuthPage = (props) => {
           body: JSON.stringify(signInFormData),
         }
       );
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Signin failed");
       }
-
       const data = await response.json();
-      const isSuccess = data.valid;
-      if (isSuccess) {
-        localStorage.setItem("sessionTokenId", data.sessionToken);
-        localStorage.setItem("orgTokenId", data.orgTokenId);
-        localStorage.setItem("userId", data.userId);
-        localStorage.setItem("expirationEpoch", data.expirationEpoch);
-        setCheckLogin(true);
-        setIsLoading(false);
-
-        navigate("/dashboard", {
-          state: {
-            // Use 'state' to pass props
-            userId: data.userId, // Example: Pass user data
-            sessionToken: data.sessionToken, // Example: Pass token
-            orgTokenId: data.orgTokenId,
-          },
-        });
-      } else {
-        setError(data.message);
-        setIsLoading(false);
-      }
+      localStorage.setItem("sessionTokenId", data.sessionToken);
+      localStorage.setItem("orgTokenId", data.orgTokenId);
+      localStorage.setItem("userId", data.userId);
+      localStorage.setItem("expirationEpoch", data.expirationEpoch);
+      setIsLoading(false);
+      navigate("/dashboard", {
+        state: {
+          userId: data.userId,
+          sessionToken: data.sessionToken,
+          orgTokenId: data.orgTokenId,
+        },
+      });
     } catch (err) {
-      console.error("Signin error:", err);
       setError(err.message);
       setIsLoading(false);
     }
@@ -187,144 +156,81 @@ const AuthPage = (props) => {
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
         }}
       >
-        <div className="flex justify-between mb-4">
-          <Button
-            type={isSignUp ? "primary" : "default"}
-            onClick={() => {
-              setIsSignUp(true);
-              setError("");
-            }}
-          >
+        {/* Signup/Login Toggle Buttons */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "16px" }}>
+          <Button type={isSignUp ? "primary" : "default"} onClick={() => setIsSignUp(true)}>
             Signup
           </Button>
-          <Button
-            type={!isSignUp ? "primary" : "default"}
-            onClick={() => {
-              setIsSignUp(false);
-              setError("");
-            }}
-          >
+          <Button type={!isSignUp ? "primary" : "default"} onClick={() => setIsSignUp(false)}>
             Login
           </Button>
         </div>
+
         {isSignUp ? (
           <Form onFinish={handleSignUpSubmit}>
             <Form.Item label="User Name">
-              <Input
-                name="user_name"
-                placeholder="User Name"
-                onChange={handleSignUpInputChange}
-              />
+              <Input name="user_name" placeholder="User Name" onChange={handleSignUpInputChange} />
             </Form.Item>
             <Form.Item label="Organization Name">
-              <Input
-                name="org_name"
-                placeholder="Organization Name"
-                onChange={handleSignUpInputChange}
-              />
+              <Input name="org_name" placeholder="Organization Name" onChange={handleSignUpInputChange} />
             </Form.Item>
             <Form.Item label="Phone">
-              <Input
-                name="phone"
-                placeholder="Phone"
-                onChange={handleSignUpInputChange}
-              />
-            </Form.Item>
-            <Form.Item label="Unit">
-              <Input
-                name="unit"
-                placeholder="Unit"
-                onChange={handleSignUpInputChange}
-              />
-            </Form.Item>
-            <Form.Item label="Loyalty Points">
-              <Input
-                type="number"
-                name="loyalty_points"
-                placeholder="Loyalty Points"
-                onChange={handleSignUpInputChange}
-              />
+              <Input name="phone" placeholder="Phone" onChange={handleSignUpInputChange} />
             </Form.Item>
             <Form.Item label="Email">
-              <Input
-                type="email"
-                name="email"
-                placeholder="Email"
-                onChange={handleSignUpInputChange}
-              />
+              <Input type="email" name="email" placeholder="Email" onChange={handleSignUpInputChange} />
             </Form.Item>
             <Form.Item label="Password">
-              <Input.Password
-                name="password"
-                placeholder="Password"
-                onChange={handleSignUpInputChange}
-              />
+              <Input.Password name="password" placeholder="Password" onChange={handleSignUpInputChange} />
             </Form.Item>
             <Form.Item label="Confirm Password">
-              <Input.Password
-                name="confirm_password"
-                placeholder="Confirm Password"
-                onChange={handleSignUpInputChange}
-              />
+              <Input.Password name="confirm_password" placeholder="Confirm Password" onChange={handleSignUpInputChange} />
             </Form.Item>
             <Form.Item valuePropName="checkbox">
               <Checkbox name="checkbox" onChange={handleSignUpInputChange}>
                 I agree to the terms and conditions
               </Checkbox>
             </Form.Item>
-            <Row gutter={8}>
+
+            {/* Signup & Close Buttons */}
+            <Row gutter={[16, 16]} justify="center">
               <Col span={12}>
-                <Form.Item>
-                  <Button type="primary" htmlType="submit" block disabled= {isLoading} loading = {isLoading}>
-                    Signup
-                  </Button>
-                </Form.Item>
+                <Button type="primary" htmlType="submit" block disabled={isLoading} loading={isLoading}>
+                  Signup
+                </Button>
               </Col>
               <Col span={12}>
-                <Form.Item>
-                  <Button onClick={() => props.setIsOpen(false)} block>
-                    Close
-                  </Button>
-                </Form.Item>
+                <Button onClick={() => props.setIsOpen(false)} block>
+                  Close
+                </Button>
               </Col>
             </Row>
           </Form>
         ) : (
           <Form onFinish={handleSignInSubmit}>
             <Form.Item label="Email">
-              <Input
-                type="email"
-                name="email"
-                placeholder="Email"
-                onChange={handleSignInInputChange}
-              />
+              <Input type="email" name="email" placeholder="Email" onChange={handleSignInInputChange} />
             </Form.Item>
             <Form.Item label="Password">
-              <Input.Password
-                name="password"
-                placeholder="Password"
-                onChange={handleSignInInputChange}
-              />
+              <Input.Password name="password" placeholder="Password" onChange={handleSignInInputChange} />
             </Form.Item>
-            <Row gutter={8}>
+
+            {/* Login & Close Buttons */}
+            <Row gutter={[16, 16]} justify="center">
               <Col span={12}>
-                <Form.Item>
-                  <Button type="primary" htmlType="submit" block disabled= {isLoading} loading = {isLoading}>
-                    Login
-                  </Button>
-                </Form.Item>
+                <Button type="primary" htmlType="submit" block disabled={isLoading} loading={isLoading}>
+                  Login
+                </Button>
               </Col>
               <Col span={12}>
-                <Form.Item>
-                  <Button onClick={() => props.setIsOpen(false)} block>
-                    Close
-                  </Button>
-                </Form.Item>
+                <Button onClick={() => props.setIsOpen(false)} block>
+                  Close
+                </Button>
               </Col>
             </Row>
           </Form>
         )}
-        {error && <p className="text-red-500 mt-2">{error}</p>}
+        {error && <p style={{ color: "red", textAlign: "center", marginTop: "10px" }}>{error}</p>}
       </div>
     </div>
   );

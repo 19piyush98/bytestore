@@ -34,7 +34,7 @@ const AllUsers = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
         const orgTokenId = location.state?.orgTokenId;
         if (!orgTokenId) {
@@ -52,7 +52,7 @@ const AllUsers = () => {
 
         const data = await response.json();
         const isSuccess = data.success;
-        setLoading(false)
+        setLoading(false);
         if (isSuccess) {
           setAllUsersData(data.users);
           setFilteredUser(data.users);
@@ -135,11 +135,7 @@ const AllUsers = () => {
     }
   };
 
-  return loading ? (
-    <div style={{ textAlign: "center", marginTop: "20vh" }}>
-      <LoadingOutlined style={{ fontSize: 48 }} spin />
-    </div>
-  ) : (
+  return (
     <>
       {!showAddUserForm ? (
         <div>
@@ -190,65 +186,70 @@ const AllUsers = () => {
               flexDirection: "column",
             }}
           >
-            <InfiniteScroll
-              dataLength={filteredUser.length}
-              hasMore={false}
-              loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
-              endMessage={<Divider plain>It is all, nothing more 🤐</Divider>}
-              scrollableTarget="scrollableDiv"
-            >
-              <List
-                dataSource={filteredUser}
-                renderItem={(item, idx) => (
-                  <List.Item
-                    key={idx}
-                    actions={[
-                      <Tooltip title="Delete">
-                        <Button
-                          type="danger"
-                          icon={<DeleteOutlined />}
-                          size="large"
-                          onClick={() =>
-                            handleDelete(item.userId, item.userDetails.userName)
-                          }
-                          style={{
-                            padding: "12px 20px",
-                            border: "none",
-                            background: "transparent",
-                            borderRadius: "8px",
-                          }}
-                          className="delete-button"
-                        />
-                      </Tooltip>,
-                    ]}
-                  >
-                    <List.Item.Meta
-                      avatar={
-                        <Avatar
-                          style={{
-                            backgroundColor: `${
-                              colorList[
-                                Math.floor(Math.random() * colorList.length)
-                              ]
-                            }`,
-                            verticalAlign: "middle",
-                          }}
-                          size="large"
-                        >
-                          {item.userDetails.userName.substring(0, 1)}
-                        </Avatar>
-                      }
-                      title={item.userDetails.userName}
-                      description={item.userDetails.email}
-                    />
-                    <div>
-                      {item.userDetails.phoneNo}
-                      <br />({item.unit})
-                    </div>
-                  </List.Item>
-                )}
-              />
-            </InfiniteScroll>
+            <Skeleton loading={loading} active>
+              <InfiniteScroll
+                dataLength={filteredUser.length}
+                hasMore={false}
+                loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
+                endMessage={<Divider plain>It is all, nothing more 🤐</Divider>}
+                scrollableTarget="scrollableDiv"
+              >
+                <List
+                  dataSource={filteredUser}
+                  renderItem={(item, idx) => (
+                    <List.Item
+                      key={idx}
+                      actions={[
+                        <Tooltip title="Delete">
+                          <Button
+                            type="danger"
+                            icon={<DeleteOutlined />}
+                            size="large"
+                            onClick={() =>
+                              handleDelete(
+                                item.userId,
+                                item.userDetails.userName
+                              )
+                            }
+                            style={{
+                              padding: "12px 20px",
+                              border: "none",
+                              background: "transparent",
+                              borderRadius: "8px",
+                            }}
+                            className="delete-button"
+                          />
+                        </Tooltip>,
+                      ]}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar
+                            style={{
+                              backgroundColor: `${
+                                colorList[
+                                  Math.floor(Math.random() * colorList.length)
+                                ]
+                              }`,
+                              verticalAlign: "middle",
+                            }}
+                            size="large"
+                          >
+                            {item.userDetails.userName.substring(0, 1)}
+                          </Avatar>
+                        }
+                        title={item.userDetails.userName}
+                        description={item.userDetails.email}
+                      />
+                      <div>
+                        {item.userDetails.phoneNo}
+                        <br />({item.unit})
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              </InfiniteScroll>
+            </Skeleton>
           </div>
         </div>
       ) : (

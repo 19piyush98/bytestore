@@ -1,82 +1,73 @@
-import React from "react";
-import "../css/LandingPage.css";
+import React, { useState } from "react";
+import { Layout, Menu, Button, Modal, Typography } from "antd";
+import { HomeOutlined, PhoneOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import Footer from "./Footer";
 import HeroSection from "./HeroSection";
-import { useState } from "react";
 import AuthPage from "./AuthPage";
+import logo from "../assets/logo.jpeg"; 
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+const { Header, Content } = Layout;
+const { Title } = Typography;
 
 const LandingPage = () => {
-
   const [isOpen, setIsOpen] = useState(false);
+
   const navigation = [
-    { name: "Home", href: "#", current: false },
-    { name: "Contact", href: "#", current: false },
-    { name: "About", href: "#", current: false }
+    { name: "Home", href: "#", icon: <HomeOutlined /> },
+    { name: "Contact", href: "#", icon: <PhoneOutlined /> },
+    { name: "About", href: "#", icon: <InfoCircleOutlined /> }
   ];
 
   return (
-    <div className="main">
-      <div className="grid grid-cols-3 gap-4 justify-between h-80">
-        <div>
-          <h1>
-            <text id="b">B</text>
-            <text id="b-continue">yte</text>
-            <text id="store">STORE</text>
-          </h1>
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#f5f5f5" }}>
+      <Header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 24px",
+          backgroundColor: "#001529"
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <img src={logo} alt="ByteStore Logo" style={{ height: 50, marginRight: 10 }}/>
+          <Title level={3} style={{ color: "white", margin: 0 }}>
+            ByteStore
+          </Title>
         </div>
-        <div></div>
-        <div className="navbar">
-          <div className="flex space-x-4 grid grid-cols-4">
-            {navigation.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                aria-current={item.current ? "page" : undefined}
-                className={classNames(
-                  item.current
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-300 hover:text-white hover:text-2xl hover:underline",
-                  "rounded-md px-3 py-8 text-xl font-large"
-                )}
-              >
-                {item.name}
-              </a>
-            ))}
-            <button key='Login'  onClick={() => setIsOpen(true)} className="text-gray-300 hover:text-white hover:text-2xl hover:underline rounded-md px- py-8 text-xl font-large">Login</button>
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <HeroSection setIsOpen = {setIsOpen}/>
-        </div>
-        <div>
-          <div className=" h-80"></div>
-          <Footer />
-        </div>
-      </div>
 
+        <Menu
+          theme="dark"
+          mode="horizontal"
+          style={{ flex: 1, justifyContent: "center" }}
+          items={navigation.map((item, index) => ({
+            key: index,
+            icon: item.icon,
+            label: <a href={item.href} style={{ color: "white" }}>{item.name}</a>
+          }))}
+        />
 
-      <div>
+        <Button type="primary" size="large" onClick={() => setIsOpen(true)}>
+          Login
+        </Button>
+      </Header>
 
-      {/* Modal */}
-      {isOpen && (
+      <Content style={{ padding: "40px", display: "flex", justifyContent: "center" }}>
+        <HeroSection setIsOpen={setIsOpen} />
+      </Content>
 
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"> {/* Backdrop */}
-          <div className="p-8 shadow-lg w-1/2"> 
-            <AuthPage setIsOpen={setIsOpen}/>
-          </div>
-        </div>
-      )}
-    </div>
+      <Footer />
 
-
-
-    </div>
+      <Modal
+        title="Login"
+        open={isOpen}
+        onCancel={() => setIsOpen(false)}
+        footer={null}
+        centered
+      >
+        <AuthPage setIsOpen={setIsOpen} />
+      </Modal>
+    </Layout>
   );
 };
 

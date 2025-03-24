@@ -2,7 +2,6 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { LoadingOutlined } from "@ant-design/icons";
 import { Skeleton, Divider, Collapse, Row, Button, Col, Input } from "antd";
 import Product from "./Product";
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
@@ -84,11 +83,7 @@ const AllProducts = () => {
       setFilteredProduct(products);
     }
   };
-  return loading ? (
-    <div style={{ textAlign: "center", marginTop: "20vh" }}>
-      <LoadingOutlined style={{ fontSize: 48 }} spin />
-    </div>
-  ) : (
+  return (
     <>
       {!showAddProductForm ? (
         <div
@@ -124,6 +119,7 @@ const AllProducts = () => {
             </Col>
           </Row>
           <Divider />
+      <Skeleton loading={loading} active>
           <InfiniteScroll
             dataLength={filteredProduct.length}
             hasMore={false}
@@ -146,6 +142,7 @@ const AllProducts = () => {
               })}
             </Collapse>
           </InfiniteScroll>
+          </Skeleton>
         </div>
       ) : (
         <AddProduct
