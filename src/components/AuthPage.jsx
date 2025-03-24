@@ -73,6 +73,7 @@ const AuthPage = (props) => {
   };
 
   const handleSignUpSubmit = async () => {
+    setIsLoading(true);
     setError("");
     try {
       const apiData = convertSignUpData(signUpFormData);
@@ -89,16 +90,26 @@ const AuthPage = (props) => {
         throw new Error(errorData.message || "Signup failed");
       }
       const data = await response.json();
-      localStorage.setItem("orgTokenId", data.orgTokenId);
-      navigate("/dashboard", {
-        state: {
-          userId: data.userId,
-          sessionToken: data.sessionToken,
-          orgTokenId: data.orgTokenId,
-        },
-      });
+      const isSuccess = data.success;
+      if (isSuccess) {
+        localStorage.setItem("orgTokenId", data.orgTokenId);
+        localStorage.setItem("sessionTokenId", data.sessionToken);
+        localStorage.setItem("userId", data.userId);
+        localStorage.setItem("expirationEpoch", data.expirationEpoch);
+        navigate("/dashboard", {
+          state: {
+            userId: data.userId,
+            sessionToken: data.sessionToken,
+            orgTokenId: data.orgTokenId,
+          },
+        });
+      } else {
+        setError(data.message);
+      }
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,24 +130,29 @@ const AuthPage = (props) => {
         throw new Error(errorData.message || "Signin failed");
       }
       const data = await response.json();
-      localStorage.setItem("sessionTokenId", data.sessionToken);
-      localStorage.setItem("orgTokenId", data.orgTokenId);
-      localStorage.setItem("userId", data.userId);
-      localStorage.setItem("expirationEpoch", data.expirationEpoch);
-      setIsLoading(false);
-      navigate("/dashboard", {
-        state: {
-          userId: data.userId,
-          sessionToken: data.sessionToken,
-          orgTokenId: data.orgTokenId,
-        },
-      });
+      const isSuccess = data.valid;
+      if (isSuccess) {
+        localStorage.setItem("sessionTokenId", data.sessionToken);
+        localStorage.setItem("orgTokenId", data.orgTokenId);
+        localStorage.setItem("userId", data.userId);
+        localStorage.setItem("expirationEpoch", data.expirationEpoch);
+        setIsLoading(false);
+        navigate("/dashboard", {
+          state: {
+            userId: data.userId,
+            sessionToken: data.sessionToken,
+            orgTokenId: data.orgTokenId,
+          },
+        });
+      } else {
+        setError(data.message);
+      }
     } catch (err) {
       setError(err.message);
+    } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div
       style={{
@@ -157,34 +173,72 @@ const AuthPage = (props) => {
         }}
       >
         {/* Signup/Login Toggle Buttons */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "16px" }}>
-          <Button type={isSignUp ? "primary" : "default"} onClick={() => setIsSignUp(true)}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "10px",
+            marginBottom: "16px",
+          }}
+        >
+          <Button
+            type={isSignUp ? "primary" : "default"}
+            onClick={() => setIsSignUp(true)}
+          >
             Signup
           </Button>
-          <Button type={!isSignUp ? "primary" : "default"} onClick={() => setIsSignUp(false)}>
+          <Button
+            type={!isSignUp ? "primary" : "default"}
+            onClick={() => setIsSignUp(false)}
+          >
             Login
           </Button>
         </div>
 
         {isSignUp ? (
-          <Form onFinish={handleSignUpSubmit}>
+          <Form>
             <Form.Item label="User Name">
-              <Input name="user_name" placeholder="User Name" onChange={handleSignUpInputChange} />
+              <Input
+                name="user_name"
+                placeholder="User Name"
+                onChange={handleSignUpInputChange}
+              />
             </Form.Item>
             <Form.Item label="Organization Name">
-              <Input name="org_name" placeholder="Organization Name" onChange={handleSignUpInputChange} />
+              <Input
+                name="org_name"
+                placeholder="Organization Name"
+                onChange={handleSignUpInputChange}
+              />
             </Form.Item>
             <Form.Item label="Phone">
-              <Input name="phone" placeholder="Phone" onChange={handleSignUpInputChange} />
+              <Input
+                name="phone"
+                placeholder="Phone"
+                onChange={handleSignUpInputChange}
+              />
             </Form.Item>
             <Form.Item label="Email">
-              <Input type="email" name="email" placeholder="Email" onChange={handleSignUpInputChange} />
+              <Input
+                type="email"
+                name="email"
+                placeholder="Email"
+                onChange={handleSignUpInputChange}
+              />
             </Form.Item>
             <Form.Item label="Password">
-              <Input.Password name="password" placeholder="Password" onChange={handleSignUpInputChange} />
+              <Input.Password
+                name="password"
+                placeholder="Password"
+                onChange={handleSignUpInputChange}
+              />
             </Form.Item>
             <Form.Item label="Confirm Password">
-              <Input.Password name="confirm_password" placeholder="Confirm Password" onChange={handleSignUpInputChange} />
+              <Input.Password
+                name="confirm_password"
+                placeholder="Confirm Password"
+                onChange={handleSignUpInputChange}
+              />
             </Form.Item>
             <Form.Item valuePropName="checkbox">
               <Checkbox name="checkbox" onChange={handleSignUpInputChange}>
@@ -192,10 +246,16 @@ const AuthPage = (props) => {
               </Checkbox>
             </Form.Item>
 
-            {/* Signup & Close Buttons */}
             <Row gutter={[16, 16]} justify="center">
               <Col span={12}>
-                <Button type="primary" htmlType="submit" block disabled={isLoading} loading={isLoading}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  disabled={isLoading}
+                  loading={isLoading}
+                  onClick={handleSignUpSubmit}
+                >
                   Signup
                 </Button>
               </Col>
@@ -207,18 +267,33 @@ const AuthPage = (props) => {
             </Row>
           </Form>
         ) : (
-          <Form onFinish={handleSignInSubmit}>
+          <Form>
             <Form.Item label="Email">
-              <Input type="email" name="email" placeholder="Email" onChange={handleSignInInputChange} />
+              <Input
+                type="email"
+                name="email"
+                placeholder="Email"
+                onChange={handleSignInInputChange}
+              />
             </Form.Item>
             <Form.Item label="Password">
-              <Input.Password name="password" placeholder="Password" onChange={handleSignInInputChange} />
+              <Input.Password
+                name="password"
+                placeholder="Password"
+                onChange={handleSignInInputChange}
+              />
             </Form.Item>
 
-            {/* Login & Close Buttons */}
             <Row gutter={[16, 16]} justify="center">
               <Col span={12}>
-                <Button type="primary" htmlType="submit" block disabled={isLoading} loading={isLoading}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  disabled={isLoading}
+                  loading={isLoading}
+                  onClick={handleSignInSubmit}
+                >
                   Login
                 </Button>
               </Col>
@@ -230,10 +305,13 @@ const AuthPage = (props) => {
             </Row>
           </Form>
         )}
-        {error && <p style={{ color: "red", textAlign: "center", marginTop: "10px" }}>{error}</p>}
+        {error && (
+          <p style={{ color: "red", textAlign: "center", marginTop: "10px" }}>
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );
 };
-
 export default AuthPage;
